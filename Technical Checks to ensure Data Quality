@@ -1,0 +1,40 @@
+----------------------------------------
+Technical Checks to ensure Data Quality 
+----------------------------------------
+The below form a multi-layered defense against poor data quality, ensuring data is trustworthy, compliant, and fit for decision-making
+
+Freshness and Latency monitoring 
+- What it means: Ensuring data is up-to-date and delivered within acceptable timeframes.
+- How it’s done:
+  - Track timestamps of last data refresh.
+  - Compare against SLA (e.g., “data must be updated every 24 hours”).
+  - Monitor pipeline latency (time taken from source to warehouse).
+- Governance impact: Prevents decisions based on stale or delayed data.
+
+Volume and Row Count Anomaly detection
+- What it means: Checking whether the number of records ingested matches expectations.
+- How it’s done:
+  - Compare daily row counts against historical averages.
+  - Flag anomalies (e.g., sudden drop from 1M rows to 100k rows).
+- Governance impact: Detects missing data, failed loads, or duplication early.
+
+Schema validation(drift detection)
+- What it means: Ensuring the structure of data (tables, columns, types) hasn’t changed unexpectedly.
+- How it’s done:
+  - Validate schema against a baseline (expected columns, datatypes).
+  - Detect drift (e.g., new column added, datatype changed).
+- Governance impact: Prevents broken reports, failed ETL jobs, and misinterpretation of data.
+
+Null rates & Distint value counts
+- What it means: Monitoring completeness and uniqueness of data.
+- How it’s done:
+  - Track % of nulls in critical fields (e.g., customer ID, transaction date).
+  - Check distinct value counts (e.g., too few unique IDs may indicate duplication).
+- Governance impact: Ensures data is usable, reliable, and not corrupted.
+
+Business Logic(referential integrity)
+- What it means: Monitoring completeness and uniqueness of data.
+- How it’s done:
+  - Track % of nulls in critical fields (e.g., customer ID, transaction date).
+  - Check distinct value counts (e.g., too few unique IDs may indicate duplication).
+- Governance impact: Ensures data is usable, reliable, and not corrupted.
