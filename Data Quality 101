@@ -1,0 +1,43 @@
+6 pillars of Data Quality
+What ?
+Why ?
+How ?
+What is Data Quality?
+Data Quality is the process of making sure data is fit for consumption and meets needs of consumers.
+
+What is Data Quality Management?
+The Planning, Implementation and control activities that apply quality management Techniques
+
+Benefits of Data Quality ? Why?
+Accurate Decision Making 
+Improved Operational Efficiency
+Enhanced Customer Experience
+Better Analytics and Insights
+Compliance and Risk Mitigation 
+Cost Savings
+Trust and Reputation 
+
+Data Quality Process Explained
+Discover - Define  - Integrate - Monitor
+Discover:
+Profile Data to understand anomalies in data sources 
+Define:
+Define cleansing and standardization rules
+Integrate:
+Deploy defined rules into data quality processes
+Monitor:
+Continuously monitor and report on data quality 
+
+How is Data Quality Measured? 
+6 Pillars of Data Quality
+Accuracy : Data reprsents "reality"
+Validity : Data conforms to expected format, type, range 
+Completeness : All the data required for a particular use is present and can be used 
+Uniqueness : Data appears only once in a dataset
+Timeliness : Data is available when expected and needed 
+Consistency : Data values should not conflict with other values across the dataset 
+--Examples of the above 6 insert table---
+How to Keep it clean ?
+People : Assign data owners who are responsible for Data Quality
+Process : Create rules for data entry (constraints)
+Technology : Use tools that automatically flag errors before they enter the system  
