@@ -1,0 +1,54 @@
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+def clean_and_standardize_product_costing(spark: SparkSession):
+    # 1. Simulate Raw Ingested Data from the 6 ECC Systems (Bronze Layer)
+    # Inside SAP, MARA handles material general data, MARM handles units of measure
+    raw_ecc_data = spark.createDataFrame([
+        # Duplicated product due to overlapping numbers across systems, inconsistent UOMs
+        ("PRD-10021", "ECC_AMER", "EA", 150.00, "2026-05-20 10:00:00"),
+        ("PRD-10021", "ECC_EUROPE", "PCS", 148.50, "2026-05-22 14:30:00"), # Latest, more accurate cost
+        ("PRD-55099", "ECC_ASIA", "BOX", 45.00, "2026-05-21 09:00:00"),
+        ("PRD-55099", "ECC_ASIA", "BOX", 45.00, "2026-05-21 09:00:00")  # Hard duplicate record
+    ], ["material_id", "src_sys_id", "source_uom", "unit_cost", "last_updated_at"])
+
+    # 2. Centralized Master UOM Registry Mapping Table
+    uom_registry = spark.createDataFrame([
+        ("ECC_AMER", "EA", "PC", 1.0),
+        ("ECC_EUROPE", "PCS", "PC", 1.0),
+        ("ECC_ASIA", "BOX", "PC", 0.0416) # 1 BOX = 24 Pieces, so unit cost must adapt
+    ], ["src_sys_id", "source_uom", "standard_uom", "conversion_factor"])
+
+    # 3. Join Raw Data against the Centralized Registry
+    # This dynamic join scales seamlessly whether you have 6 ECC instances or 60.
+    mapped_df = raw_ecc_data.join(
+        uom_registry, 
+        on=["src_sys_id", "source_uom"], 
+        how="inner"
+    )
+
+    # 4. Standardize Costs based on UOM Conversion Factor
+    standardized_df = mapped_df.withColumn(
+        "normalized_unit_cost", 
+        F.round(F.col("unit_cost") / F.col("conversion_factor"), 2)
+    )
+
+    # 5. Algorithmic Deduplication via Windowing
+    # We partition by material_id, ranking by the latest update time to take the newest master record
+    window_spec = Window.partitionBy("material_id").orderBy(F.col("last_updated_at").desc())
+    
+    deduplicated_df = standardized_df.withColumn("rank", F.row_number().over(window_spec)) \
+                                     .filter(F.col("rank") == 1) \
+                                     .drop("rank", "unit_cost", "conversion_factor", "source_uom")
+
+    return deduplicated_df
+
+# Execution block within pipeline orchestrator (e.g., Airflow / Azure Data Factory)
+if __name__ == "__main__":
+    spark_sess = SparkSession.builder.appName("MTP-Costing-Hotfix").getOrCreate()
+    final_clean_df = clean_and_standardize_product_costing(spark_sess)
+    
+    # Write directly to Gold layer for immediate MTP model consumption
+    final_clean_df.write.mode("overwrite").saveAsTable("financial_planning.gold_product_costing")
+    print("MTP Costing Data successfully deduplicated and standardized.")
